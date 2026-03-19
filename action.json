@@ -1,37 +1,37 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Microsoft Learn Docs MCP",
-    "description": "Direct access to the Model-Context-Protocol-Server (JSON-RPC 2.0) from learn.microsoft.com.",
-    "version": "v1.0.0"
+    "title": "Microsoft Learn MCP (OpenAI-compatible)",
+    "description": "Microsoft Learn MCP Server via JSON-RPC 2.0. Supports initialize, tools/list, tools/call.",
+    "version": "v1.0.8"
   },
   "servers": [
     {
-      "url": "https://learn.microsoft.com/api/mcp"
+      "url": "https://learn.microsoft.com/api/mcp/openai-compatible"
     }
   ],
   "paths": {
     "/": {
       "post": {
         "operationId": "SendMcpMessage",
-        "summary": "Send a JSON-RPC message (initialize OR tools/call).",
+        "summary": "Send a JSON-RPC 2.0 request to MCP (initialize, tools/list, tools/call).",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MCPMessage"
+                "$ref": "#/components/schemas/MCPRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Response from the MCP server",
+            "description": "JSON-RPC 2.0 response (result or error).",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MCPResponse"
+                  "$ref": "#/components/schemas/JSONRPCResponse"
                 }
               }
             }
@@ -42,136 +42,91 @@
   },
   "components": {
     "schemas": {
-      "MCPMessage": {
+      "RequestId": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "integer" }
+        ]
+      },
+
+      "MCPRequest": {
         "type": "object",
-        "required": [
-          "jsonrpc",
-          "id",
-          "method",
-          "params"
-        ],
+        "required": ["jsonrpc", "id", "method"],
         "properties": {
           "jsonrpc": {
             "type": "string",
-            "enum": [
-              "2.0"
-            ]
+            "enum": ["2.0"]
           },
           "id": {
-            "type": [
-              "string",
-              "integer"
-            ]
+            "$ref": "#/components/schemas/RequestId"
           },
           "method": {
             "type": "string",
-            "enum": [
-              "initialize",
-              "tools/call"
-            ]
+            "enum": ["initialize", "tools/list", "tools/call"]
           },
           "params": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/InitializeParams"
-              },
-              {
-                "$ref": "#/components/schemas/DocsSearchParams"
-              }
-            ]
-          }
-        },
-        "additionalProperties": false
-      },
-      "InitializeParams": {
-        "type": "object",
-        "required": [
-          "protocolVersion"
-        ],
-        "properties": {
-          "protocolVersion": {
-            "type": "string"
-          },
-          "clientInfo": {
             "type": "object",
+            "description": "Params depend on method. initialize requires protocolVersion, clientInfo, capabilities. tools/call requires name and arguments.",
             "properties": {
-              "name": {
-                "type": "string"
+              "protocolVersion": { "type": "string" },
+              "clientInfo": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "version": { "type": "string" }
+                },
+                "required": ["name", "version"],
+                "additionalProperties": true
               },
-              "version": {
-                "type": "string"
-              }
+              "capabilities": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "name": { "type": "string" },
+              "arguments": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "_meta": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": true
+              },
+              "cursor": { "type": "string" }
             },
-            "additionalProperties": false
-          },
-          "capabilities": {
-            "type": "object"
+            "additionalProperties": true
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Single JSON-RPC request object. Note: method-specific required fields are validated by the MCP server."
       },
-      "DocsSearchParams": {
+
+      "JSONRPCResponse": {
         "type": "object",
-        "required": [
-          "name",
-          "arguments"
-        ],
         "properties": {
-          "name": {
-            "type": "string",
-            "enum": [
-              "microsoft_docs_search"
-            ]
-          },
-          "arguments": {
-            "type": "object",
-            "required": [
-              "question"
-            ],
-            "properties": {
-              "question": {
-                "type": "string",
-                "description": "Search question"
-              }
-            },
-            "additionalProperties": false
-          }
-        },
-        "additionalProperties": false
-      },
-      "MCPResponse": {
-        "type": "object",
-        "required": [
-          "jsonrpc",
-          "id"
-        ],
-        "properties": {
-          "jsonrpc": {
-            "type": "string",
-            "enum": [
-              "2.0"
-            ]
-          },
-          "id": {
-            "type": [
-              "string",
-              "integer"
-            ]
-          },
+          "jsonrpc": { "type": "string" },
+          "id": { "$ref": "#/components/schemas/RequestId" },
           "result": {
-            "type": [
-              "object",
-              "null"
-            ]
+            "type": "object",
+            "properties": {},
+            "additionalProperties": true
           },
-          "error": {
-            "type": [
-              "object",
-              "null"
-            ]
-          }
+          "error": { "$ref": "#/components/schemas/Error" }
         },
-        "additionalProperties": false
+        "additionalProperties": true
+      },
+
+      "Error": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": { "type": "integer" },
+          "message": { "type": "string" },
+          "data": {}
+        },
+        "additionalProperties": true
       }
     }
   }
