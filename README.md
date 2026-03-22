@@ -1,4 +1,5 @@
 # chatgpt-mcp-protocol-action
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](#license)
 
 GitHub Action to fetch and apply the [Microsoft Model Context Protocol (MCP)](https://github.com/microsoftdocs/mcp), enriching ChatGPT interactions with structured model context support.
 
