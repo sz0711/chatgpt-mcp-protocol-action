@@ -22,3 +22,14 @@ This project uses the [Microsoft Model Context Protocol (MCP)](https://github.co
 © Microsoft, licensed under the [MIT License](https://github.com/microsoftdocs/mcp/blob/main/LICENSE).
 
 Your usage of this repository and its code is also subject to the [MIT License](LICENSE).
+
+## ⚠️ Disclaimer
+
+This repository is a private project.
+
+It is provided without any warranty, guarantee, or representation of any kind.
+Use is entirely at your own risk. The author accepts no liability for direct or
+indirect damages, data loss, outages, or any other consequences resulting from
+the use of this project.
+
+---
